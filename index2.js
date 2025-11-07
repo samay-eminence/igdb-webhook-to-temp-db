@@ -1181,6 +1181,11 @@ app.post("/upload-files", async (req, res) => {
   try {
     const igdbData = req.body;
     console.log(igdbData, "IGDB DATA");
+    console.log(req.headers, "HEADERS");
+    console.log(req.body, "RAW IGDB DATA");
+
+    const method = req.body.method;
+    console.log("Webhook Method:", method);
 
     if (!igdbData) {
       return res.status(400).send("No data received");
