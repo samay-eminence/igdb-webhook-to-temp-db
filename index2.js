@@ -25,7 +25,7 @@ const {
   handleReleaseDates,
 } = require("./utills");
 require("dotenv").config();
-const addGameInTempDb = require("./addGamesInTempDb")
+const addGameInTempDb = require("./addGamesInTempDb");
 const app = express();
 app.use(express.json());
 //prod cred:
@@ -36,29 +36,29 @@ const strapiToken = process.env.PROD_API_TOKEN;
 // const strapiUrl = process.env.STAGE_STRAPI_URL;
 // const strapiToken = process.env.STAGE_API_TOKEN;
 
-const TWITCH_AUTH_URL = "https://id.twitch.tv/oauth2/token";
-const IGDB_API_URL = "https://api.igdb.com/v4/games";
-const CHUNK_SIZE = 75;
-const CLIENT_ID = "d0vu4uargc119cfvauchk0hw7n0qh6";
-const CLIENT_SECRET = "18r7bxgrlr5n2jnqomhd5vtsnaq605";
+// const TWITCH_AUTH_URL = "https://id.twitch.tv/oauth2/token";
+// const IGDB_API_URL = "https://api.igdb.com/v4/games";
+// const CHUNK_SIZE = 75;
+// const CLIENT_ID = "d0vu4uargc119cfvauchk0hw7n0qh6";
+// const CLIENT_SECRET = "18r7bxgrlr5n2jnqomhd5vtsnaq605";
 
-const categoryMapping = {
-  0: "main_game",
-  1: "dlc_addon",
-  2: "expansion",
-  3: "bundle",
-  4: "standalone_expansion",
-  5: "mod",
-  6: "episode",
-  7: "season",
-  8: "remake",
-  9: "remaster",
-  10: "expanded_game",
-  11: "port",
-  12: "fork",
-  13: "pack",
-  14: "update",
-};
+// const categoryMapping = {
+//   0: "main_game",
+//   1: "dlc_addon",
+//   2: "expansion",
+//   3: "bundle",
+//   4: "standalone_expansion",
+//   5: "mod",
+//   6: "episode",
+//   7: "season",
+//   8: "remake",
+//   9: "remaster",
+//   10: "expanded_game",
+//   11: "port",
+//   12: "fork",
+//   13: "pack",
+//   14: "update",
+// };
 
 //production database cred
 const dbClient = new Pool({
@@ -84,45 +84,45 @@ let accessToken = null;
 
 const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const fetchAccessToken = async () => {
-  console.log("inside fetch token");
-  const { data } = await axios.post(TWITCH_AUTH_URL, null, {
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    params: {
-      client_id: CLIENT_ID,
-      client_secret: CLIENT_SECRET,
-      grant_type: "client_credentials",
-    },
-  });
-  accessToken = data.access_token;
-};
+// const fetchAccessToken = async () => {
+//   console.log("inside fetch token");
+//   const { data } = await axios.post(TWITCH_AUTH_URL, null, {
+//     headers: { "Content-Type": "application/x-www-form-urlencoded" },
+//     params: {
+//       client_id: CLIENT_ID,
+//       client_secret: CLIENT_SECRET,
+//       grant_type: "client_credentials",
+//     },
+//   });
+//   accessToken = data.access_token;
+// };
 
-const fetchGames = async (slug, url) => {
-  const result = await dbClient.query(
-    "SELECT * FROM games WHERE slug = $1 OR site_url = $2 LIMIT 1",
-    [slug, url]
-  );
-  return result.rows;
-};
+// const fetchGames = async (slug, url) => {
+//   const result = await dbClient.query(
+//     "SELECT * FROM games WHERE slug = $1 OR site_url = $2 LIMIT 1",
+//     [slug, url]
+//   );
+//   return result.rows;
+// };
 
-const updateGame = async (gameId, updatedData) => {
-  console.log(updatedData, "updated dtaat");
-  const headerFromApi = {
-    "Client-ID": CLIENT_ID,
-    Authorization: `Bearer ${accessToken}`,
-  };
-  const objData = await objectForGame(updatedData, headerFromApi);
-  await updateOrCreateGameDataWithNewFeilds(objData, gameId);
-};
+// const updateGame = async (gameId, updatedData) => {
+//   console.log(updatedData, "updated dtaat");
+//   const headerFromApi = {
+//     "Client-ID": CLIENT_ID,
+//     Authorization: `Bearer ${accessToken}`,
+//   };
+//   const objData = await objectForGame(updatedData, headerFromApi);
+//   await updateOrCreateGameDataWithNewFeilds(objData, gameId);
+// };
 
-const createGame = async (createdData) => {
-  const headerFromApi = {
-    "Client-ID": CLIENT_ID,
-    Authorization: `Bearer ${accessToken}`,
-  };
-  const objData = await objectForGame(createdData, headerFromApi);
-  await updateOrCreateGameDataWithNewFeilds(objData);
-};
+// const createGame = async (createdData) => {
+//   const headerFromApi = {
+//     "Client-ID": CLIENT_ID,
+//     Authorization: `Bearer ${accessToken}`,
+//   };
+//   const objData = await objectForGame(createdData, headerFromApi);
+//   await updateOrCreateGameDataWithNewFeilds(objData);
+// };
 function addPublishedAtIfRequired(gameData) {
   const requiredFields = [
     "title",
@@ -142,80 +142,81 @@ function addPublishedAtIfRequired(gameData) {
   return allRequiredFieldsPresent ? DateTime.now().toISO() : null;
 }
 
-const processGames = async (games) => {
-  const gamesWithSiteUrl = games.filter((game) => game.url);
-  const siteUrls = gamesWithSiteUrl.map((game) => game.url);
-  console.log(siteUrls, "siteUrlssss");
-  let updatedDataWithSiteUrl = [];
+// const processGames = async (games) => {
+//   const gamesWithSiteUrl = games.filter((game) => game.url);
+//   const siteUrls = gamesWithSiteUrl.map((game) => game.url);
+//   console.log(siteUrls, "siteUrlssss");
+//   let updatedDataWithSiteUrl = [];
 
-  if (siteUrls.length > 0) {
-    const siteUrlQuery = `fields *,genres.name,game_modes.name,player_perspectives.name,game_engines.name,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,keywords.name,platforms.name,release_dates.*,screenshots.url,themes.name,videos.video_id,videos.name,websites.category,websites.url,language_supports.language.name,game_localizations.*,similar_games.*,external_games.name,cover.url,artworks.url,age_ratings.*,franchises.name,collections.name,release_dates.platform.*,alternative_names.name,similar_games.genres.name,similar_games.game_modes.name,similar_games.player_perspectives.name,similar_games.game_engines.name,similar_games.involved_companies.developer,similar_games.involved_companies.publisher,similar_games.involved_companies.company.name,similar_games.keywords.name,similar_games.platforms.name,similar_games.release_dates.*,similar_games.screenshots.url,similar_games.themes.name,similar_games.videos.video_id,similar_games.videos.name,similar_games.websites.category,similar_games.websites.url,similar_games.language_supports.language.name,similar_games.game_localizations.*,similar_games.similar_games.*,similar_games.external_games.name,similar_games.cover.url,similar_games.artworks.url,similar_games.age_ratings.*,similar_games.franchises.name,similar_games.collections.name,similar_games.release_dates.platform.*,expansions.*,similar_games.alternative_names.name,expansions.genres.name,expansions.game_modes.name,expansions.player_perspectives.name,expansions.game_engines.name,expansions.involved_companies.developer,expansions.involved_companies.publisher,expansions.involved_companies.company.name,expansions.keywords.name,expansions.platforms.name,expansions.release_dates.*,expansions.screenshots.url,expansions.themes.name,expansions.videos.video_id,expansions.videos.name,expansions.websites.category,expansions.websites.url,expansions.language_supports.language.name,expansions.game_localizations.*,expansions.similar_games.*,expansions.external_games.name,expansions.cover.url,expansions.artworks.url,expansions.age_ratings.*,expansions.franchises.name,expansions.collections.name,expansions.release_dates.platform.*,expansions.expansions.*,expansions.alternative_names.name; url; where url = (${siteUrls
-      .map((url) => `"${url}"`)
-      .join(",")}); limit ${siteUrls.length};`;
+//   if (siteUrls.length > 0) {
+//     const siteUrlQuery = `fields *,genres.name,game_modes.name,player_perspectives.name,game_engines.name,involved_companies.developer,involved_companies.publisher,involved_companies.company.name,keywords.name,platforms.name,release_dates.*,screenshots.url,themes.name,videos.video_id,videos.name,websites.category,websites.url,language_supports.language.name,game_localizations.*,similar_games.*,external_games.name,cover.url,artworks.url,age_ratings.*,franchises.name,collections.name,release_dates.platform.*,alternative_names.name,similar_games.genres.name,similar_games.game_modes.name,similar_games.player_perspectives.name,similar_games.game_engines.name,similar_games.involved_companies.developer,similar_games.involved_companies.publisher,similar_games.involved_companies.company.name,similar_games.keywords.name,similar_games.platforms.name,similar_games.release_dates.*,similar_games.screenshots.url,similar_games.themes.name,similar_games.videos.video_id,similar_games.videos.name,similar_games.websites.category,similar_games.websites.url,similar_games.language_supports.language.name,similar_games.game_localizations.*,similar_games.similar_games.*,similar_games.external_games.name,similar_games.cover.url,similar_games.artworks.url,similar_games.age_ratings.*,similar_games.franchises.name,similar_games.collections.name,similar_games.release_dates.platform.*,expansions.*,similar_games.alternative_names.name,expansions.genres.name,expansions.game_modes.name,expansions.player_perspectives.name,expansions.game_engines.name,expansions.involved_companies.developer,expansions.involved_companies.publisher,expansions.involved_companies.company.name,expansions.keywords.name,expansions.platforms.name,expansions.release_dates.*,expansions.screenshots.url,expansions.themes.name,expansions.videos.video_id,expansions.videos.name,expansions.websites.category,expansions.websites.url,expansions.language_supports.language.name,expansions.game_localizations.*,expansions.similar_games.*,expansions.external_games.name,expansions.cover.url,expansions.artworks.url,expansions.age_ratings.*,expansions.franchises.name,expansions.collections.name,expansions.release_dates.platform.*,expansions.expansions.*,expansions.alternative_names.name; url; where url = (${siteUrls
+//       .map((url) => `"${url}"`)
+//       .join(",")}); limit ${siteUrls.length};`;
 
-    updatedDataWithSiteUrl = await fetchFromIGDB(siteUrlQuery);
-  }
-  for (let i = 0; i < games.length; i++) {
-    const game = games[i];
-    let updatedData;
-    const gamesExistsInDb = await fetchGames(game.slug, game.url);
-    if (
-      gamesExistsInDb &&
-      gamesExistsInDb.length > 0 &&
-      gamesExistsInDb[0]?.site_url
-    ) {
-      updatedData = updatedDataWithSiteUrl.find(
-        (data) => data.url === gamesExistsInDb[0]?.site_url
-      );
-      if (updatedData) {
-        await updateGame(gamesExistsInDb[0]?.id, updatedData);
-      }
-    } else {
-      console.log("inside else!!", updatedDataWithSiteUrl);
+//     updatedDataWithSiteUrl = await fetchFromIGDB(siteUrlQuery);
+//   }
+//   for (let i = 0; i < games.length; i++) {
+//     const game = games[i];
+//     let updatedData;
+//     const gamesExistsInDb = await fetchGames(game.slug, game.url);
+//     if (
+//       gamesExistsInDb &&
+//       gamesExistsInDb.length > 0 &&
+//       gamesExistsInDb[0]?.site_url
+//     ) {
+//       updatedData = updatedDataWithSiteUrl.find(
+//         (data) => data.url === gamesExistsInDb[0]?.site_url
+//       );
+//       if (updatedData) {
+//         await updateGame(gamesExistsInDb[0]?.id, updatedData);
+//       }
+//     } else {
+//       console.log("inside else!!", updatedDataWithSiteUrl);
 
-      // Correctly get the data from updatedDataWithSiteUrl using game.url
-      updatedData = updatedDataWithSiteUrl.find(
-        (data) => data.url === game.url
-      );
-      if (updatedData) {
-        await createGame(updatedData);
-      }
-    }
-  }
-};
-const fetchFromIGDB = async (query) => {
-  const response = await fetch("https://api.igdb.com/v4/games", {
-    method: "POST",
-    headers: {
-      "Client-ID": CLIENT_ID,
-      Authorization: `Bearer ${accessToken}`,
-    },
-    body: query,
-  });
-  const data = await response.json();
-  return data; // Return the result of the IGDB API call
-};
+//       // Correctly get the data from updatedDataWithSiteUrl using game.url
+//       updatedData = updatedDataWithSiteUrl.find(
+//         (data) => data.url === game.url
+//       );
+//       if (updatedData) {
+//         await createGame(updatedData);
+//       }
+//     }
+//   }
+// };
 
-const startProcess = async (gamesArr) => {
-  let client;
-  try {
-    console.log("1");
-    client = await dbClient.connect();
-    await fetchAccessToken();
-    if (accessToken) {
-      const normalizedArr = Array.isArray(gamesArr) ? gamesArr : [gamesArr];
-      if (normalizedArr.length > 0) {
-        await processGames(normalizedArr);
-      }
-    }
-  } catch (err) {
-    console.log("2");
-    console.error("Error connecting to the database:", err);
-  } finally {
-    console.log("3");
-    client.release(); // Always release the client back to the pool
-  }
-};
+// const fetchFromIGDB = async (query) => {
+//   const response = await fetch("https://api.igdb.com/v4/games", {
+//     method: "POST",
+//     headers: {
+//       "Client-ID": CLIENT_ID,
+//       Authorization: `Bearer ${accessToken}`,
+//     },
+//     body: query,
+//   });
+//   const data = await response.json();
+//   return data; // Return the result of the IGDB API call
+// };
+
+// const startProcess = async (gamesArr) => {
+//   let client;
+//   try {
+//     console.log("1");
+//     client = await dbClient.connect();
+//     await fetchAccessToken();
+//     if (accessToken) {
+//       const normalizedArr = Array.isArray(gamesArr) ? gamesArr : [gamesArr];
+//       if (normalizedArr.length > 0) {
+//         await processGames(normalizedArr);
+//       }
+//     }
+//   } catch (err) {
+//     console.log("2");
+//     console.error("Error connecting to the database:", err);
+//   } finally {
+//     console.log("3");
+//     client.release(); // Always release the client back to the pool
+//   }
+// };
 
 const checkIfGameExists = async (slug) => {
   try {
@@ -953,106 +954,106 @@ const getParentGameById = async (parentGameId, headerFromApi) => {
     return null;
   }
 };
-const objectForGame = async (parsedData, headerFromApi) => {
-  try {
-    const categoryId = parsedData.category;
-    const categoryName = categoryMapping[categoryId];
-    const gameGenres = await handleGenres(parsedData);
-    const gameModes = await handleGameModes(parsedData);
-    const gamePlayerPerspectives = await handlePlayerPerspectives(parsedData);
-    const gameThemes = await handleThemes(parsedData);
-    const gameKeywords = await handleKeywords(parsedData);
-    const gameAlternativeNames = await handleAlternativeNames(parsedData);
-    const gameEngines = await handleGameEngines(parsedData);
-    const gameLanguageSupports = await handleLanguageSupports(parsedData);
-    const gameInvolvedCompanies = await handleInvolvedCompanies(parsedData);
-    const gameFranchies = await handleFrenchies(parsedData);
-    const externalGames = await handleExternalGames(parsedData);
-    const gameCoverImage = await handleCoverImage(parsedData);
-    const gameBackgroundImage = await handleBackgroundImage(parsedData);
-    const gameScreenShots = await handleScreenShots(parsedData);
-    const gameCollections = await handleCollections(parsedData);
-    const gamePlatforms = await handlePlatforms(parsedData);
-    const gameVideos = await handleVideos(parsedData);
-    const gameWebsiteLinks = await handleWebsiteLinks(parsedData);
-    const promtGeneratedDescription = await getRewrittenDescription(
-      parsedData?.name,
-      parsedData?.summary
-    );
-    const gameReleaseDates = await handleReleaseDates(
-      parsedData,
-      headerFromApi
-    );
-    const gameSeriesOrSpinOff = await handleSeriesAndSpinOff(
-      parsedData,
-      headerFromApi
-    );
-    const similarGames = await handleSimilarGames(parsedData, headerFromApi);
-    const expansionGames = await handleGameExpansions(
-      parsedData,
-      headerFromApi
-    );
-    const sessionGames = await getOrCreateSeason(parsedData, headerFromApi);
-    const gameData = {
-      title: parsedData.name || null,
-      slug: parsedData.slug || null,
-      site_url: parsedData.url,
-      genres: gameGenres || [],
-      game_modes: gameModes || [],
-      player_perspective: gamePlayerPerspectives || [],
-      themes: gameThemes || [],
-      keywords: gameKeywords || [],
-      alternative_names: gameAlternativeNames || [],
-      game_engines: gameEngines || [],
-      language_supports: gameLanguageSupports || [],
-      involved_companies:
-        (gameInvolvedCompanies &&
-          gameInvolvedCompanies?.involvedCompaniesArray) ||
-        [],
-      publisher:
-        (gameInvolvedCompanies && gameInvolvedCompanies?.publishersArray) || [],
-      developer:
-        gameInvolvedCompanies &&
-        gameInvolvedCompanies?.developersArray &&
-        gameInvolvedCompanies?.developersArray.length > 0
-          ? gameInvolvedCompanies?.developersArray
-          : [],
-      franchises: gameFranchies || [],
-      external_games: externalGames || [],
-      coverImage: gameCoverImage || null,
-      image: gameBackgroundImage || null,
-      ...(gameScreenShots &&
-        gameScreenShots.length > 0 && {
-          screenshots: gameScreenShots,
-        }),
-      collections: gameCollections || [],
-      platforms: gamePlatforms || [],
-      videos: gameVideos || [],
-      website_links: gameWebsiteLinks || [],
-      description: promtGeneratedDescription || null,
-      releaseByPlatforms: {
-        release:
-          gameReleaseDates?.releaseByPlatformsArray &&
-          gameReleaseDates?.releaseByPlatformsArray.length > 0
-            ? gameReleaseDates?.releaseByPlatformsArray
-            : [],
-      },
-      devices: gameReleaseDates?.devicesArray || [],
-      firstReleaseDate: gameReleaseDates?.earliestReleaseDate || null,
-      latestReleaseDate: gameReleaseDates?.latestReleaseDate || null,
-      // game_category: categoryName || null,
-      aggregateRating: parsedData.aggregated_rating || null,
-      series: gameSeriesOrSpinOff?.seriesName || null,
-      isSpinOff: gameSeriesOrSpinOff?.isSpinOffName || null,
-      related_games: similarGames || [],
-      expansions: expansionGames || [],
-      seasons: sessionGames || [],
-    };
-    return gameData;
-  } catch (error) {
-    console.error(`Failed to parse file`, error);
-  }
-};
+// const objectForGame = async (parsedData, headerFromApi) => {
+//   try {
+//     const categoryId = parsedData.category;
+//     const categoryName = categoryMapping[categoryId];
+//     const gameGenres = await handleGenres(parsedData);
+//     const gameModes = await handleGameModes(parsedData);
+//     const gamePlayerPerspectives = await handlePlayerPerspectives(parsedData);
+//     const gameThemes = await handleThemes(parsedData);
+//     const gameKeywords = await handleKeywords(parsedData);
+//     const gameAlternativeNames = await handleAlternativeNames(parsedData);
+//     const gameEngines = await handleGameEngines(parsedData);
+//     const gameLanguageSupports = await handleLanguageSupports(parsedData);
+//     const gameInvolvedCompanies = await handleInvolvedCompanies(parsedData);
+//     const gameFranchies = await handleFrenchies(parsedData);
+//     const externalGames = await handleExternalGames(parsedData);
+//     const gameCoverImage = await handleCoverImage(parsedData);
+//     const gameBackgroundImage = await handleBackgroundImage(parsedData);
+//     const gameScreenShots = await handleScreenShots(parsedData);
+//     const gameCollections = await handleCollections(parsedData);
+//     const gamePlatforms = await handlePlatforms(parsedData);
+//     const gameVideos = await handleVideos(parsedData);
+//     const gameWebsiteLinks = await handleWebsiteLinks(parsedData);
+//     const promtGeneratedDescription = await getRewrittenDescription(
+//       parsedData?.name,
+//       parsedData?.summary
+//     );
+//     const gameReleaseDates = await handleReleaseDates(
+//       parsedData,
+//       headerFromApi
+//     );
+//     const gameSeriesOrSpinOff = await handleSeriesAndSpinOff(
+//       parsedData,
+//       headerFromApi
+//     );
+//     const similarGames = await handleSimilarGames(parsedData, headerFromApi);
+//     const expansionGames = await handleGameExpansions(
+//       parsedData,
+//       headerFromApi
+//     );
+//     const sessionGames = await getOrCreateSeason(parsedData, headerFromApi);
+//     const gameData = {
+//       title: parsedData.name || null,
+//       slug: parsedData.slug || null,
+//       site_url: parsedData.url,
+//       genres: gameGenres || [],
+//       game_modes: gameModes || [],
+//       player_perspective: gamePlayerPerspectives || [],
+//       themes: gameThemes || [],
+//       keywords: gameKeywords || [],
+//       alternative_names: gameAlternativeNames || [],
+//       game_engines: gameEngines || [],
+//       language_supports: gameLanguageSupports || [],
+//       involved_companies:
+//         (gameInvolvedCompanies &&
+//           gameInvolvedCompanies?.involvedCompaniesArray) ||
+//         [],
+//       publisher:
+//         (gameInvolvedCompanies && gameInvolvedCompanies?.publishersArray) || [],
+//       developer:
+//         gameInvolvedCompanies &&
+//         gameInvolvedCompanies?.developersArray &&
+//         gameInvolvedCompanies?.developersArray.length > 0
+//           ? gameInvolvedCompanies?.developersArray
+//           : [],
+//       franchises: gameFranchies || [],
+//       external_games: externalGames || [],
+//       coverImage: gameCoverImage || null,
+//       image: gameBackgroundImage || null,
+//       ...(gameScreenShots &&
+//         gameScreenShots.length > 0 && {
+//           screenshots: gameScreenShots,
+//         }),
+//       collections: gameCollections || [],
+//       platforms: gamePlatforms || [],
+//       videos: gameVideos || [],
+//       website_links: gameWebsiteLinks || [],
+//       description: promtGeneratedDescription || null,
+//       releaseByPlatforms: {
+//         release:
+//           gameReleaseDates?.releaseByPlatformsArray &&
+//           gameReleaseDates?.releaseByPlatformsArray.length > 0
+//             ? gameReleaseDates?.releaseByPlatformsArray
+//             : [],
+//       },
+//       devices: gameReleaseDates?.devicesArray || [],
+//       firstReleaseDate: gameReleaseDates?.earliestReleaseDate || null,
+//       latestReleaseDate: gameReleaseDates?.latestReleaseDate || null,
+//       // game_category: categoryName || null,
+//       aggregateRating: parsedData.aggregated_rating || null,
+//       series: gameSeriesOrSpinOff?.seriesName || null,
+//       isSpinOff: gameSeriesOrSpinOff?.isSpinOffName || null,
+//       related_games: similarGames || [],
+//       expansions: expansionGames || [],
+//       seasons: sessionGames || [],
+//     };
+//     return gameData;
+//   } catch (error) {
+//     console.error(`Failed to parse file`, error);
+//   }
+// };
 
 const fetchWithRetry = async (
   url,
@@ -1103,78 +1104,78 @@ const handleSeriesAndSpinOff = async (parsedData, headerFromApi) => {
     parsedData.collections = [];
   }
 };
-const updateOrCreateGameDataWithNewFeilds = async (dataObj, gameId) => {
-  console.log(dataObj, "dataObj123456789");
-  try {
-    const updateData = {
-      data: {
-        title: dataObj.title || null,
-        slug: dataObj.slug || null,
-        site_url: dataObj.site_url || null,
-        genres: dataObj.genres || [],
-        game_modes: dataObj.game_modes || [],
-        player_perspective: dataObj.player_perspective || [],
-        themes: dataObj.themes || [],
-        keywords: dataObj.keywords || [],
-        alternative_names: dataObj.alternative_names || [],
-        game_engines: dataObj.game_engines || [],
-        language_supports: dataObj.language_supports || [],
-        involved_companies: dataObj.involved_companies || [],
-        publisher: dataObj.publisher || [],
-        developer: dataObj.developer || [],
-        franchises: dataObj.franchises || [],
-        external_games: dataObj.external_games || [],
-        coverImage: dataObj.coverImage || null,
-        image: dataObj.image || null,
-        ...(dataObj.screenshots &&
-          dataObj.screenshots.length > 0 && {
-            screenshots: dataObj.screenshots,
-          }),
-        collections: dataObj.collections || [],
-        platforms: dataObj.platforms || [],
-        videos: dataObj.videos || [],
-        website_links: dataObj.website_links || [],
-        description: dataObj.description || null,
-        releaseByPlatforms: dataObj.releaseByPlatforms,
-        devices: dataObj.devices || [],
-        firstReleaseDate: dataObj?.firstReleaseDate || null,
-        latestReleaseDate: dataObj?.latestReleaseDate || null,
-        // game_category: dataObj.game_category || "",
-        aggregateRating: dataObj.aggregateRating,
-        series: dataObj.series || null,
-        isSpinOff: dataObj.isSpinOff || null,
-        published_at: addPublishedAtIfRequired(dataObj),
-        isUpdatedFromScript: true,
-        related_games: dataObj.related_games || [],
-        expansions: dataObj.expansions || [],
-        seasons: dataObj.seasons || [],
-      },
-    };
-    console.log(gameId, "gamemememmememememme", updateData);
-    if (gameId) {
-      const response = await axios.put(
-        `${strapiUrl}/api/games/${gameId}`,
-        updateData
-      );
-      if (response.status === 200) {
-        console.log(`Updated game data ID ${gameId}`);
-      } else {
-        console.error(`Failed to update game data ID ${gameId}`);
-      }
-    } else {
-      console.log("inside create api", `${strapiUrl}/api/games`, updateData);
-      const response = await axios.post(`${strapiUrl}/api/games`, updateData);
-      console.log(response.data.data, "kjjjjjjjjjjjjjjjjjjjjjj");
-      if (response.status === 200) {
-        console.log(`Created game data ID ${response.data.data?.id}`);
-      } else {
-        console.error(`Failed to create game data ID `);
-      }
-    }
-  } catch (error) {
-    console.error(`Error updating game data: ${error}`);
-  }
-};
+// const updateOrCreateGameDataWithNewFeilds   = async (dataObj, gameId) => {
+//   console.log(dataObj, "dataObj123456789");
+//   try {
+//     const updateData = {
+//       data: {
+//         title: dataObj.title || null,
+//         slug: dataObj.slug || null,
+//         site_url: dataObj.site_url || null,
+//         genres: dataObj.genres || [],
+//         game_modes: dataObj.game_modes || [],
+//         player_perspective: dataObj.player_perspective || [],
+//         themes: dataObj.themes || [],
+//         keywords: dataObj.keywords || [],
+//         alternative_names: dataObj.alternative_names || [],
+//         game_engines: dataObj.game_engines || [],
+//         language_supports: dataObj.language_supports || [],
+//         involved_companies: dataObj.involved_companies || [],
+//         publisher: dataObj.publisher || [],
+//         developer: dataObj.developer || [],
+//         franchises: dataObj.franchises || [],
+//         external_games: dataObj.external_games || [],
+//         coverImage: dataObj.coverImage || null,
+//         image: dataObj.image || null,
+//         ...(dataObj.screenshots &&
+//           dataObj.screenshots.length > 0 && {
+//             screenshots: dataObj.screenshots,
+//           }),
+//         collections: dataObj.collections || [],
+//         platforms: dataObj.platforms || [],
+//         videos: dataObj.videos || [],
+//         website_links: dataObj.website_links || [],
+//         description: dataObj.description || null,
+//         releaseByPlatforms: dataObj.releaseByPlatforms,
+//         devices: dataObj.devices || [],
+//         firstReleaseDate: dataObj?.firstReleaseDate || null,
+//         latestReleaseDate: dataObj?.latestReleaseDate || null,
+//         // game_category: dataObj.game_category || "",
+//         aggregateRating: dataObj.aggregateRating,
+//         series: dataObj.series || null,
+//         isSpinOff: dataObj.isSpinOff || null,
+//         published_at: addPublishedAtIfRequired(dataObj),
+//         isUpdatedFromScript: true,
+//         related_games: dataObj.related_games || [],
+//         expansions: dataObj.expansions || [],
+//         seasons: dataObj.seasons || [],
+//       },
+//     };
+//     console.log(gameId, "gamemememmememememme", updateData);
+//     if (gameId) {
+//       const response = await axios.put(
+//         `${strapiUrl}/api/games/${gameId}`,
+//         updateData
+//       );
+//       if (response.status === 200) {
+//         console.log(`Updated game data ID ${gameId}`);
+//       } else {
+//         console.error(`Failed to update game data ID ${gameId}`);
+//       }
+//     } else {
+//       console.log("inside create api", `${strapiUrl}/api/games`, updateData);
+//       const response = await axios.post(`${strapiUrl}/api/games`, updateData);
+//       console.log(response.data.data, "kjjjjjjjjjjjjjjjjjjjjjj");
+//       if (response.status === 200) {
+//         console.log(`Created game data ID ${response.data.data?.id}`);
+//       } else {
+//         console.error(`Failed to create game data ID `);
+//       }
+//     }
+//   } catch (error) {
+//     console.error(`Error updating game data: ${error}`);
+//   }
+// };
 
 app.post("/upload-files", async (req, res) => {
   try {
@@ -1184,25 +1185,24 @@ app.post("/upload-files", async (req, res) => {
     if (!igdbData) {
       return res.status(400).send("No data received");
     }
- const gameData = {
-   id: 341400,
-   category: 0,
-   created_at: 1745333439,
-   involved_companies: [317219],
-   name: "Voidling Bound",
-   platforms: [6],
-   release_dates: [732164],
-   slug: "voidling-bound--1",
-   updated_at: 1745346705,
-   url: "https://www.igdb.com/games/voidling-bound--1",
-   websites: [733097],
-   checksum: "43e9dd62-36a1-b958-facf-28c52d4af6c5",
-   game_type: 0,
- };
+    const gameData = {
+      id: 341400,
+      category: 0,
+      created_at: 1745333439,
+      involved_companies: [317219],
+      name: "Voidling Bound",
+      platforms: [6],
+      release_dates: [732164],
+      slug: "voidling-bound--1",
+      updated_at: 1745346705,
+      url: "https://www.igdb.com/games/voidling-bound--1",
+      websites: [733097],
+      checksum: "43e9dd62-36a1-b958-facf-28c52d4af6c5",
+      game_type: 0,
+    };
 
-
- // await addGameInTempDb(gameData)
- await addGameInTempDb(igdbData)
+    // await addGameInTempDb(gameData)
+    await addGameInTempDb(igdbData);
     // await startProcess(igdbData);
     // Upload the received IGDB data to S3
     // const result = await uploadDataToS3(igdbData);
