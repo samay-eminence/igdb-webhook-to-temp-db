@@ -134,66 +134,66 @@ const streamToString = async (stream) => {
   return Buffer.concat(chunks).toString("utf-8");
 };
 
-// const addGameInTempDb = async (gameData) => {
-//   await connectDB();
-
-//   try {
-//     // Upload gameData to S3 logs
-//     await uploadLogToS3(gameData);
-
-//     // const existing = await Game.findOne({ id: gameData.id });
-//     // if (existing) {
-//     //   console.log("Game already exists:", gameData.name);
-//     //   return;
-//     // }
-
-//     const game = new Game(gameData);
-//     await game.save();
-//     console.log("Game saved:", game.name);
-//   } catch (err) {
-//     console.error("Error adding game:", err);
-//   }
-// };
-
 const addGameInTempDb = async (gameData) => {
   await connectDB();
 
   try {
-    // Upload gameData to S3 logs (for debugging)
+    // Upload gameData to S3 logs
     await uploadLogToS3(gameData);
 
-    // Check if the game already exists in MongoDB
-    const existing = await Game.findOne({ id: gameData.id });
+    // const existing = await Game.findOne({ id: gameData.id });
+    // if (existing) {
+    //   console.log("Game already exists:", gameData.name);
+    //   return;
+    // }
 
-    if (existing) {
-      console.log(`Updating existing game: ${gameData.name}`);
-
-      await Game.updateOne(
-        { id: gameData.id },
-        {
-          $set: {
-            ...existing.toObject(), // keep existing fields
-            ...gameData, // merge updated fields
-            active: true, // ensure it stays active
-            updatedAt: new Date(), // optional tracking
-          },
-        }
-      );
-    } else {
-      console.log(`Creating new game: ${gameData.name}`);
-      const game = new Game({
-        ...gameData,
-        active: true,
-        createdAt: new Date(),
-      });
-      await game.save();
-    }
-
-    console.log("Game processed successfully:", gameData.name);
+    const game = new Game(gameData);
+    await game.save();
+    console.log("Game saved:", game.name);
   } catch (err) {
-    console.error("Error adding/updating game:", err);
+    console.error("Error adding game:", err);
   }
 };
+
+// const addGameInTempDb = async (gameData) => {
+//   await connectDB();
+
+//   try {
+//     // Upload gameData to S3 logs (for debugging)
+//     await uploadLogToS3(gameData);
+
+//     // Check if the game already exists in MongoDB
+//     const existing = await Game.findOne({ id: gameData.id });
+
+//     if (existing) {
+//       console.log(`Updating existing game: ${gameData.name}`);
+
+//       await Game.updateOne(
+//         { id: gameData.id },
+//         {
+//           $set: {
+//             ...existing.toObject(), // keep existing fields
+//             ...gameData, // merge updated fields
+//             active: true, // ensure it stays active
+//             updatedAt: new Date(), // optional tracking
+//           },
+//         }
+//       );
+//     } else {
+//       console.log(`Creating new game: ${gameData.name}`);
+//       const game = new Game({
+//         ...gameData,
+//         active: true,
+//         createdAt: new Date(),
+//       });
+//       await game.save();
+//     }
+
+//     console.log("Game processed successfully:", gameData.name);
+//   } catch (err) {
+//     console.error("Error adding/updating game:", err);
+//   }
+// };
 
 const gameData = {
   id: 341400,
